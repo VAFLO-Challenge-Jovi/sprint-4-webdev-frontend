@@ -27,7 +27,9 @@ fontes** (Wikipédia, Google Books e Open Library), tudo salvo e organizado por 
 2. Clique em **Testar agora**. Como a rota é privada, você será levado ao login.
 3. Clique em **Usar conta de teste** → **Entrar**.
 4. No **Scanner**, clique em **Gerar nota com IA** (consulta a Wikipédia e as bases de livros em tempo
-   real) ou **Enviar imagem** para testar o OCR real com qualquer foto de texto.
+   real) ou em **Enviar imagem** para testar o OCR real com qualquer foto de texto. A imagem que
+   aparece ao abrir o Scanner é uma demonstração com varredura simulada (veja a nota em
+   *Funcionalidades*).
 5. Veja **Histórico** (busca e conversa com o assistente) e **Perfil** (estatísticas de uso).
 
 ---
@@ -54,12 +56,16 @@ fontes** (Wikipédia, Google Books e Open Library), tudo salvo e organizado por 
 
 **Área privada (exige login)**
 - **Scanner OCR**
-  - OCR **real** no navegador com Tesseract.js (português + inglês), com barra de progresso.
+  - OCR **real** no navegador com Tesseract.js (português + inglês), com barra de progresso, para
+    qualquer imagem enviada ou foto capturada pela câmera.
   - Envio de imagem (botão ou arrastar e soltar) ou **câmera ao vivo** (webcam/celular), com captura.
   - Ações rápidas: pesquisar no Google, traduzir, copiar e salvar no histórico.
   - **Gerar nota com IA**: busca o texto na Wikipédia, Google Books e Open Library, filtra só os
     resultados relevantes e monta uma nota de estudo (resumo, pontos-chave, fontes e livros
     relacionados). Tem modo offline se as APIs estiverem fora do ar.
+  - **Imagem de demonstração:** ao abrir o Scanner pela primeira vez, a capa de livro que acompanha
+    o projeto é "lida" com uma varredura **simulada**, para não baixar o modelo de OCR (cerca de
+    15 MB) logo na primeira visita. Qualquer outra imagem passa pelo OCR real.
 - **Histórico**: notas e textos agrupados por tema, busca geral e assistente de estudo
   ("Conversar com IA": resumo, perguntas de prática e plano de revisão).
 - **Perfil**: dados da conta, estatísticas (itens salvos, notas, últimos 7 dias, média de
@@ -121,7 +127,8 @@ pela URL em `VITE_MOCKAPI_URL`.
 
 - **Sem configurar nada**, o app funciona do mesmo jeito: um adaptador local
   (`src/services/api/localAdapter.js`) implementa a mesma interface REST sobre o `localStorage`, com
-  latência simulada. O usuário de teste já vem criado.
+  latência simulada. O usuário de teste já vem criado. Nesse modo, as contas e os dados ficam
+  salvos apenas no navegador em uso.
 - **Para usar o MockAPI:**
   1. Crie um projeto em https://mockapi.io com os recursos `users`, `scans` e, opcionalmente,
      `messages` (se o plano gratuito não permitir o terceiro recurso, o formulário de contato salva
@@ -129,6 +136,9 @@ pela URL em `VITE_MOCKAPI_URL`.
   2. Copie a URL base (ex.: `https://xxxxxx.mockapi.io/api/v1`) para `VITE_MOCKAPI_URL` no `.env`.
   3. Rode `npm run seed` para criar o usuário de teste e scans de exemplo.
   4. Na Vercel, cadastre a mesma variável em *Settings → Environment Variables*.
+- **No deploy da Vercel**, o app usa o MockAPI quando a variável `VITE_MOCKAPI_URL` está cadastrada
+  nas *Environment Variables*; sem ela, usa o adaptador local. As APIs públicas (Wikipédia, Google
+  Books e Open Library) funcionam nos dois casos.
 
 | Variável | Obrigatória | Descrição |
 |---|---|---|
@@ -180,18 +190,27 @@ entrar, volta para a página que queria (`src/routes/PrivateRoute.jsx` e `Public
 
 ```
 ├── index.html
+├── package.json
+├── vite.config.js               # plugins do React e do Tailwind
 ├── vercel.json                  # rewrite SPA (refresh em /app/... não dá 404)
 ├── .env.example
+├── .oxlintrc.json               # configuração do lint
+├── README.md
+├── INTEGRANTES.TXT              # nome completo e RM de cada integrante
+├── public/                      # favicon
 ├── scripts/seed-mockapi.mjs     # popula o MockAPI
 └── src/
     ├── main.jsx                 # BrowserRouter + AuthProvider + ToastProvider
     ├── App.jsx                  # tabela de rotas (públicas e privadas)
     ├── index.css                # Tailwind + tokens de design (@theme)
+    ├── assets/imgs/             # imagens do projeto (demonstração do scanner, galeria)
     ├── routes/                  # PrivateRoute, PublicOnlyRoute
     ├── context/                 # AuthContext, ToastContext
     ├── hooks/                   # 👉 toda a lógica (ver tabela abaixo)
+    ├── utils/                   # crypto (SHA-256), format, redirect, validators
     ├── services/
     │   ├── api/                 # MockAPI (httpAdapter) | localStorage (localAdapter) | seed
+    │   ├── http.js              # wrapper do fetch (JSON e ApiError)
     │   ├── booksApi.js          # Google Books → Open Library
     │   ├── wikipediaApi.js      # Wikipedia search + summary
     │   ├── ocr.js               # Tesseract.js
@@ -280,7 +299,7 @@ referências vieram do Dribbble: landing pages escuras com *bento grid*, o app d
 
 A equipe usou o **Claude Code** (assistente de programação da Anthropic) como apoio na Sprint 4.
 A IA leu os requisitos do Challenge e os dois projetos da Sprint 3, e ajudou a montar o plano de
-unificação (`SPRINT-4-PLAN.md`). Também implementou boa parte da migração: a configuração do
+unificação dos dois projetos. Também implementou boa parte da migração: a configuração do
 Tailwind e dos tokens do redesign, a reorganização da lógica em hooks customizados, as rotas
 privadas, a integração com MockAPI, Wikipédia, Google Books e Open Library, o OCR com Tesseract.js
 (a partir do teste que a equipe já tinha feito em uma branch) e o rascunho deste README. A IA também
@@ -297,9 +316,15 @@ partir de dados reais da Wikipédia e das bases de livros, por regras de relevâ
 
 ## Entrega
 
+A entrega é um único arquivo `.zip` com o projeto completo. Para gerá-lo a partir do repositório:
+
 ```bash
 git archive --format=zip -o SeekVision-Sprint4.zip HEAD
 ```
 
 O ZIP inclui código-fonte, `README.md`, `INTEGRANTES.TXT` e os demais arquivos necessários
-(sem `node_modules` e `dist`). Para conferir, descompacte em uma pasta limpa e rode `npm install && npm run dev`.
+(sem `node_modules` e `dist`). Para conferir, descompacte em uma pasta limpa e rode
+`npm install && npm run dev`.
+
+Também são informados na entrega o link do repositório Git e o link do deploy na Vercel (ambos
+no topo deste README).
