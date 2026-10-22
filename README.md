@@ -18,7 +18,7 @@ fontes** (Wikipédia, Google Books e Open Library), tudo salvo e organizado por 
 
 | | |
 |---|---|
-| **Deploy (Vercel)** | https://sprint-3-webdev-tan.vercel.app/ |
+| **Deploy (Vercel)** | https://sprint-4-webdev-frontend.vercel.app/ |
 | **Repositório** | https://github.com/VAFLO-Challenge-Jovi/sprint-3-webdev |
 | **Usuário de teste** | `aluno@seekvision.com` |
 | **Senha** | `seek1234` |
